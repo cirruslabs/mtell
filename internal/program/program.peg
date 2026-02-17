@@ -1,0 +1,100 @@
+{
+    package program
+
+    import (
+        "fmt"
+        "time"
+
+        "github.com/cirruslabs/mtell/internal/keymap"
+    )
+}
+
+// Program consists of commands and freestanding text
+Program = statements:(Command / TypeText)* EOF {
+    program := &Program{}
+
+    for _, statement := range statements.([]interface{}) {
+        program.Statements = append(program.Statements, statement.(Statement))
+    }
+
+    return program, nil
+}
+
+// Command can be like <wait 'Text'>, <leftAltOn>, etc.
+Command = '<' command:(WaitDuration / WaitText / ClickText / PressKey) '>' {
+    return command, nil
+}
+
+// Parse <wait10> or <wait5m15s>
+WaitDuration = "wait" d:Duration {
+    return &WaitDuration{
+        Duration: d.(time.Duration),
+    }, nil
+}
+Duration = (Number TimeUnit)+ {
+    return time.ParseDuration(string(c.text))
+} / Number {
+    return time.ParseDuration(string(c.text) + "s")
+}
+TimeUnit = "ns" / "us" / "µs" / "ms" / "s" / "m" / "h"
+Number = [0-9]+
+
+// Parse <wait 'Text on screen'>
+WaitText = "wait" WS t:QuotedText {
+    return &WaitText{
+        Text: t.(string),
+    }, nil
+}
+
+// Parse <click 'Text on screen'>
+ClickText = "click" WS t:QuotedText {
+    return &ClickText{
+        Text: t.(string),
+    }, nil
+}
+
+// Parse <bs>, <leftAltOn>, <rightShiftOff>, etc.
+PressKey = kn:KeyName m:KeyMask? {
+	mask := KeyOn | KeyOff
+
+	if m != nil {
+		mask = m.(KeyMask)
+	}
+
+    keyName := kn.(string)
+    code, ok := keymap.KeyMap[keyName]
+    if !ok {
+        return nil, fmt.Errorf("unknown key %q", keyName)
+    }
+
+    return &PressKey{
+        Name: keyName,
+        Code: uint32(code),
+        Mask: mask,
+    }, nil
+}
+KeyName = ( !KeyMask [A-Za-z0-9] )+ {
+	return string(c.text), nil
+}
+KeyMask = "On" {
+    return KeyOn, nil
+} / "Off" {
+    return KeyOff, nil
+}
+
+// Parse freestanding text
+TypeText = !"<" (!"<" .)+ {
+    return &TypeText{
+        Text: string(c.text),
+    }, nil
+}
+
+// Common rules
+QuotedText = "'" t:Text "'" {
+    return t, nil
+}
+Text = [^']* {
+    return string(c.text), nil
+}
+WS <- [ \t]+
+EOF <- !.
