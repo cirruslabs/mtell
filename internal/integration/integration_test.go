@@ -15,6 +15,9 @@ import (
 )
 
 func TestSimpleVNC(t *testing.T) {
+	// Vision framework requires macOS, but a macOS virtual machine cannot run Docker
+	t.Skip()
+
 	container, err := testcontainers.GenericContainer(t.Context(), testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
 			FromDockerfile: testcontainers.FromDockerfile{
