@@ -12,3 +12,17 @@ jobs:
           go-version: stable
       - name: Run tests
         run: go test -v ./...
+  missing-go-generate-check:
+    name: Check for missing "go generate"
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Run "go generate ./..."
+        run: go generate ./...
+      - name: Make sure no files had been changed
+        run: |
+          git status --porcelain
+          test -z "$(git status --porcelain)"
