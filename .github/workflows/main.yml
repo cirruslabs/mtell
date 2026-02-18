@@ -1,0 +1,14 @@
+on:
+  push:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Run tests
+        run: go test -v ./...
