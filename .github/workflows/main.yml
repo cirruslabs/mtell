@@ -4,7 +4,7 @@ on:
 jobs:
   test:
     name: Test
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-xs
+    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
