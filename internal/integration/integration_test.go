@@ -51,7 +51,8 @@ func TestSimpleVNC(t *testing.T) {
 		_ = desktop.Run(t.Context())
 	}()
 
-	program, err := programpkg.ParseString("<click 'A very special button'>")
+	program, err := programpkg.ParseString("<wait1><wait1s>A very secret key!<enter>" +
+		"<wait 'A very special button'><click 'A very special button'>")
 	require.NoError(t, err)
 
 	err = executor.Execute(t.Context(), desktop, program)
