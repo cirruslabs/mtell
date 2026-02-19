@@ -95,12 +95,18 @@ func waitForText(ctx context.Context, desktop desktop.Desktop, text string) (*im
 			return nil, err
 		}
 
-		rectangle, err := vision.FindTextCoordinates(image, text)
+		rectangle, err := vision.FindTextCoordinates(ctx, image, text)
 		if err != nil {
 			if errors.Is(err, vision.ErrNotFound) {
 				slog.DebugContext(ctx, "no text found", "text", text)
 
-				continue
+				// Wait for some time before trying again
+				select {
+				case <-time.After(time.Second):
+					continue
+				case <-ctx.Done():
+					return nil, ctx.Err()
+				}
 			}
 
 			return nil, err
