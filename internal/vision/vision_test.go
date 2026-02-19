@@ -18,7 +18,7 @@ func TestFindTextCoordinates(t *testing.T) {
 	image, err := png.Decode(imageFile)
 	require.Nil(t, err)
 
-	rectangle, err := vision.FindTextCoordinates(image, "Select")
+	rectangle, err := vision.FindTextCoordinates(t.Context(), image, "Select")
 	require.NoError(t, err)
 	require.NotNil(t, rectangle)
 

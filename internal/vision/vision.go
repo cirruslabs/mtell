@@ -2,9 +2,11 @@ package vision
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	imagepkg "image"
 	"image/png"
+	"log/slog"
 	"regexp"
 	"unsafe"
 
@@ -15,7 +17,7 @@ import (
 
 var ErrNotFound = errors.New("no text matching the given regular expression was found")
 
-func FindTextCoordinates(rgba imagepkg.Image, s string) (*imagepkg.Rectangle, error) {
+func FindTextCoordinates(ctx context.Context, rgba imagepkg.Image, s string) (*imagepkg.Rectangle, error) {
 	re, err := regexp.Compile(s)
 	if err != nil {
 		return nil, err
@@ -24,13 +26,17 @@ func FindTextCoordinates(rgba imagepkg.Image, s string) (*imagepkg.Rectangle, er
 	var result *imagepkg.Rectangle
 
 	objc.WithAutoreleasePool(func() {
-		result, err = findTextCoordinatesInner(rgba, re)
+		result, err = findTextCoordinatesInner(ctx, rgba, re)
 	})
 
 	return result, err
 }
 
-func findTextCoordinatesInner(image imagepkg.Image, re *regexp.Regexp) (*imagepkg.Rectangle, error) {
+func findTextCoordinatesInner(
+	ctx context.Context,
+	image imagepkg.Image,
+	re *regexp.Regexp,
+) (*imagepkg.Rectangle, error) {
 	var imageAsPNG bytes.Buffer
 	if err := png.Encode(&imageAsPNG, image); err != nil {
 		return nil, err
@@ -61,6 +67,8 @@ func findTextCoordinatesInner(image imagepkg.Image, re *regexp.Regexp) (*imagepk
 
 		for _, candidate := range recognized.TopCandidates(1) {
 			text := candidate.String()
+
+			slog.DebugContext(ctx, "found text", "text", candidate.String())
 
 			if !re.MatchString(text) {
 				break
