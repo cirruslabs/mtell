@@ -82,6 +82,9 @@ func (desktop *Desktop) Run(ctx context.Context) error {
 		case serverMessage := <-desktop.serverMessageCh:
 			switch message := serverMessage.(type) {
 			case *vnc.FramebufferUpdateMessage:
+				slog.DebugContext(ctx, "received framebuffer update message",
+					"num_rectangles", len(message.Rectangles))
+
 				if err := desktop.handleFramebufferUpdateMessage(ctx, message); err != nil {
 					return err
 				}

@@ -98,6 +98,8 @@ func waitForText(ctx context.Context, desktop desktop.Desktop, text string) (*im
 		rectangle, err := vision.FindTextCoordinates(image, text)
 		if err != nil {
 			if errors.Is(err, vision.ErrNotFound) {
+				slog.DebugContext(ctx, "no text found", "text", text)
+
 				continue
 			}
 
