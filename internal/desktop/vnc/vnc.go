@@ -73,16 +73,10 @@ func New(ctx context.Context, target string, inputDelay time.Duration) (*Desktop
 	// Now that we've connected, initialize the image with the server-provided screen dimensions
 	desktop.imageDimensionsChanged()
 
-	errCh := make(chan error, 1)
-
-	go func() {
-		errCh <- desktop.run(ctx)
-	}()
-
 	return desktop, nil
 }
 
-func (desktop *Desktop) run(ctx context.Context) error {
+func (desktop *Desktop) Run(ctx context.Context) error {
 	for {
 		select {
 		case serverMessage := <-desktop.serverMessageCh:

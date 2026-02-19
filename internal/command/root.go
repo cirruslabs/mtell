@@ -1,6 +1,8 @@
 package command
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
@@ -11,6 +13,7 @@ import (
 	"github.com/cirruslabs/mtell/internal/logginglevel"
 	programpkg "github.com/cirruslabs/mtell/internal/program"
 	"github.com/spf13/cobra"
+	"golang.org/x/sync/errgroup"
 )
 
 type Options struct {
@@ -46,9 +49,14 @@ func NewRootCommand() *cobra.Command {
 }
 
 func run(cmd *cobra.Command, args []string, opts *Options) error {
+	// Parse the program
+	program, err := programpkg.ParseString(args[0])
+	if err != nil {
+		return fmt.Errorf("failed to parse command: %w", err)
+	}
+
 	// Connect to a desktop
 	var desktop desktop.Desktop
-	var err error
 
 	switch {
 	case opts.VNC != "":
@@ -63,11 +71,24 @@ func run(cmd *cobra.Command, args []string, opts *Options) error {
 
 	slog.Info("connected to a desktop using VNC", "vnc", opts.VNC)
 
-	// Parse and execute the command
-	program, err := programpkg.ParseString(args[0])
-	if err != nil {
-		return fmt.Errorf("failed to parse command: %w", err)
-	}
+	// Run the desktop session
+	subCtx, subCtxCancel := context.WithCancel(cmd.Context())
+	group, groupCtx := errgroup.WithContext(subCtx)
 
-	return executor.Execute(cmd.Context(), desktop, program)
+	group.Go(func() error {
+		if err := desktop.Run(groupCtx); err != nil && !errors.Is(err, context.Canceled) {
+			return err
+		}
+
+		return nil
+	})
+
+	// Execute the program
+	group.Go(func() error {
+		defer subCtxCancel()
+
+		return executor.Execute(groupCtx, desktop, program)
+	})
+
+	return group.Wait()
 }

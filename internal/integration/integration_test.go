@@ -40,6 +40,10 @@ func TestSimpleVNC(t *testing.T) {
 	require.NoError(t, err)
 	defer desktop.Close()
 
+	go func() {
+		_ = desktop.Run(t.Context())
+	}()
+
 	program, err := programpkg.ParseString("<click 'A very special button'>")
 	require.NoError(t, err)
 
