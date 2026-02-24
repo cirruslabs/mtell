@@ -6,7 +6,7 @@ Besides allowing you to script basic keyboard and mouse interactions, `mtell` ca
 
 This project is heavily inspired by [Packer's `boot_command`](https://developer.hashicorp.com/packer/integrations/cirruslabs/tart/latest/components/builder/tart#boot-configuration), but extends its command set and allows you to run these commands in any environment where you can start a binary.
 
-Special thanks to [Tor Arne Vestbø](https://github.com/torarnv), who contributed the initial [`<wait 'text'>` implementation](https://github.com/cirruslabs/packer-plugin-tart/pull/178) to [Packer builder for Tart VMs](https://github.com/cirruslabs/packer-plugin-tart), which made us realize that we can further extend the `boot_command` and do pretty cool things with it (e.g. computer vision).
+Special thanks to [Tor Arne Vestbø](https://github.com/torarnv), who contributed the initial [`<wait 'text'>` implementation](https://github.com/cirruslabs/packer-plugin-tart/pull/178) to [Packer builder for Tart VMs](https://github.com/cirruslabs/packer-plugin-tart), which made us realize that we can further extend the `boot_command` and do pretty cool things with it, for example, locating and clicking buttons using computer vision.
 
 ## Installation
 
