@@ -10,6 +10,12 @@ Special thanks to [Tor Arne Vestbø](https://github.com/torarnv), who contribute
 
 ## Installation
 
+### Using Homebrew
+
+```shell
+brew install cirruslabs/cli/mtell
+```
+
 ### Using Golang
 
 ```shell
