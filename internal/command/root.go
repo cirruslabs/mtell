@@ -12,6 +12,7 @@ import (
 	"github.com/cirruslabs/mtell/internal/executor"
 	"github.com/cirruslabs/mtell/internal/logginglevel"
 	programpkg "github.com/cirruslabs/mtell/internal/program"
+	"github.com/cirruslabs/mtell/internal/version"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )
@@ -29,6 +30,7 @@ func NewRootCommand() *cobra.Command {
 		Use:           "mtell PROGRAM",
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		Version:       version.FullVersion,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.Debug {
 				logginglevel.Level.Set(slog.LevelDebug)
