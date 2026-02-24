@@ -12,13 +12,12 @@ import (
 
 	"github.com/cirruslabs/mtell/internal/desktop"
 	"github.com/cirruslabs/mtell/internal/keymap"
-	"github.com/cirruslabs/mtell/internal/program"
 	programpkg "github.com/cirruslabs/mtell/internal/program"
 	"github.com/cirruslabs/mtell/internal/vision"
 	govnc "github.com/mitchellh/go-vnc"
 )
 
-func Execute(ctx context.Context, desktop desktop.Desktop, program *program.Program) error {
+func Execute(ctx context.Context, desktop desktop.Desktop, program *programpkg.Program) error {
 	for _, statement := range program.Statements {
 		switch stmt := statement.(type) {
 		case *programpkg.WaitDuration:

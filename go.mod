@@ -3,6 +3,7 @@ module github.com/cirruslabs/mtell
 go 1.26
 
 require (
+	github.com/hashicorp/go-version v1.8.0
 	github.com/lmittmann/tint v1.1.3
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/mna/pigeon v1.3.0

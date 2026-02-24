@@ -3,7 +3,6 @@ package integration
 import (
 	"log"
 	"log/slog"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -17,11 +16,6 @@ import (
 )
 
 func TestSimpleVNC(t *testing.T) {
-	// Vision framework requires macOS, but a macOS virtual machine cannot run Docker
-	if _, ok := os.LookupEnv("CI"); ok {
-		t.Skip()
-	}
-
 	// Receive extra logs from desktop, executor, etc.
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 
