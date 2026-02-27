@@ -7,6 +7,7 @@ require (
 	github.com/lmittmann/tint v1.1.3
 	github.com/mitchellh/go-vnc v0.0.0-20150629162542-723ed9867aed
 	github.com/mna/pigeon v1.3.0
+	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4
 	github.com/progrium/darwinkit v0.5.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
