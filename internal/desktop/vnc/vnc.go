@@ -44,6 +44,10 @@ func New(ctx context.Context, target string, inputDelay time.Duration) (*Desktop
 
 	if password, ok := targetURL.User.Password(); ok {
 		clientConfig.Auth = []vnc.ClientAuth{
+			&DHAuth{
+				Username: targetURL.User.Username(),
+				Password: password,
+			},
 			&vnc.PasswordAuth{
 				Password: password,
 			},
