@@ -29,6 +29,10 @@ func New(ctx context.Context, target string, inputDelay time.Duration) (*Desktop
 		return nil, err
 	}
 
+	if targetURL.Port() == "" {
+		targetURL.Host = net.JoinHostPort(targetURL.Hostname(), "5900")
+	}
+
 	dialer := net.Dialer{}
 
 	netConn, err := dialer.DialContext(ctx, "tcp", targetURL.Host)
