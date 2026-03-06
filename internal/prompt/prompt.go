@@ -18,7 +18,11 @@ import (
 	"github.com/openai/openai-go/v3/responses"
 )
 
-const model = openai.ChatModelGPT5_4
+const (
+	model = openai.ChatModelGPT5_4
+
+	waitDuration = 1 * time.Second
+)
 
 func Prompt(ctx context.Context, desktop desktoppkg.Desktop, text string) error {
 	client := openai.NewClient()
@@ -79,14 +83,9 @@ func Prompt(ctx context.Context, desktop desktoppkg.Desktop, text string) error 
 				return fmt.Errorf("no actions in computer call")
 			}
 
-			for i, action := range computerCall.Actions {
-				slog.InfoContext(ctx, "computer action requested",
-					"call_id", computerCall.CallID,
-					"action_index", i+1,
-					"type", action.Type)
-
+			for _, action := range computerCall.Actions {
 				if err := handleAction(ctx, desktop, action); err != nil {
-					return fmt.Errorf("action %d (%s): %w", i+1, action.Type, err)
+					return err
 				}
 			}
 
@@ -115,30 +114,48 @@ func Prompt(ctx context.Context, desktop desktoppkg.Desktop, text string) error 
 	}
 }
 
-func handleAction(ctx context.Context, desktop desktoppkg.Desktop, action responses.ComputerActionUnion) error {
+func handleAction(
+	ctx context.Context,
+	desktop desktoppkg.Desktop,
+	action responses.ComputerActionUnion,
+) error {
 	switch typedAction := action.AsAny().(type) {
 	case responses.ComputerActionClick:
+		slog.DebugContext(ctx, "clicking", "button", typedAction.Button,
+			"x", typedAction.X, "y", typedAction.Y)
+
 		return click(ctx, desktop, typedAction.Button, typedAction.X, typedAction.Y)
 	case responses.ComputerActionDoubleClick:
+		slog.InfoContext(ctx, "double clicking",
+			"x", typedAction.X, "y", typedAction.Y)
+
 		if err := click(ctx, desktop, "left", typedAction.X, typedAction.Y); err != nil {
 			return err
 		}
 
 		return click(ctx, desktop, "left", typedAction.X, typedAction.Y)
 	case responses.ComputerActionDrag:
+		slog.InfoContext(ctx, "dragging", "num_points", len(typedAction.Path))
+
 		return drag(ctx, desktop, typedAction.Path)
 	case responses.ComputerActionMove:
+		slog.InfoContext(ctx, "moving mouse", "x", typedAction.X, "y", typedAction.Y)
+
 		return mouse(ctx, desktop, 0, typedAction.X, typedAction.Y)
 	case responses.ComputerActionScreenshot:
 		// We unconditionally attach the screenshot after processing each computer call
+		slog.InfoContext(ctx, "delaying screenshot action")
+
 		return nil
 	case responses.ComputerActionType:
-		slog.DebugContext(ctx, "typing text", "text", typedAction.Text)
+		slog.InfoContext(ctx, "typing", "text", typedAction.Text)
 
 		return desktoppkg.TypeText(ctx, desktop, typedAction.Text)
 	case responses.ComputerActionWait:
+		slog.InfoContext(ctx, "waiting", "duration", waitDuration)
+
 		select {
-		case <-time.After(time.Second):
+		case <-time.After(waitDuration):
 			return nil
 		case <-ctx.Done():
 			return ctx.Err()
@@ -172,8 +189,6 @@ func screenshot(
 }
 
 func click(ctx context.Context, desktop desktoppkg.Desktop, button string, x int64, y int64) error {
-	slog.DebugContext(ctx, "clicking", "button", button, "x", x, "y", y)
-
 	var mask vnc.ButtonMask
 
 	switch strings.ToLower(button) {
