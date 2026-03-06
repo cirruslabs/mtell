@@ -6,18 +6,16 @@ import (
 	"fmt"
 	"image"
 	"log/slog"
-	"strings"
 	"time"
-	"unicode"
 
-	"github.com/cirruslabs/mtell/internal/desktop"
-	"github.com/cirruslabs/mtell/internal/keymap"
+	desktoppkg "github.com/cirruslabs/mtell/internal/desktop"
 	programpkg "github.com/cirruslabs/mtell/internal/program"
+	"github.com/cirruslabs/mtell/internal/prompt"
 	"github.com/cirruslabs/mtell/internal/vision"
 	govnc "github.com/mitchellh/go-vnc"
 )
 
-func Execute(ctx context.Context, desktop desktop.Desktop, program *programpkg.Program) error {
+func Execute(ctx context.Context, desktop desktoppkg.Desktop, program *programpkg.Program) error {
 	for _, statement := range program.Statements {
 		switch stmt := statement.(type) {
 		case *programpkg.WaitDuration:
@@ -75,11 +73,14 @@ func Execute(ctx context.Context, desktop desktop.Desktop, program *programpkg.P
 		case *programpkg.TypeText:
 			slog.InfoContext(ctx, "typing text", "text", stmt.Text)
 
-			for _, c := range stmt.Text {
-				if err := typeRune(ctx, desktop, c); err != nil {
-					return fmt.Errorf("failed to type text: %w", err)
-				}
+			if err := desktoppkg.TypeText(ctx, desktop, stmt.Text); err != nil {
+				return fmt.Errorf("failed to type text: %w", err)
+			}
+		case *programpkg.Prompt:
+			slog.InfoContext(ctx, "prompting text", "text", stmt.Text)
 
+			if err := prompt.Prompt(ctx, desktop, stmt.Text); err != nil {
+				return fmt.Errorf("failed to prompt text: %w", err)
 			}
 		}
 	}
@@ -87,7 +88,7 @@ func Execute(ctx context.Context, desktop desktop.Desktop, program *programpkg.P
 	return nil
 }
 
-func waitForText(ctx context.Context, desktop desktop.Desktop, text string) (*image.Rectangle, error) {
+func waitForText(ctx context.Context, desktop desktoppkg.Desktop, text string) (*image.Rectangle, error) {
 	for {
 		image, err := desktop.Screen(ctx)
 		if err != nil {
@@ -113,30 +114,4 @@ func waitForText(ctx context.Context, desktop desktop.Desktop, text string) (*im
 
 		return rectangle, nil
 	}
-}
-
-func typeRune(ctx context.Context, desktop desktop.Desktop, r rune) error {
-	useShift := unicode.IsUpper(r) || strings.ContainsRune("!@#$%^&*()_+{}:\"|<>?", r)
-
-	if useShift {
-		if err := desktop.Keyboard(ctx, keymap.XK_Shift_L, true); err != nil {
-			return err
-		}
-	}
-
-	if err := desktop.Keyboard(ctx, uint32(r), true); err != nil {
-		return err
-	}
-
-	if err := desktop.Keyboard(ctx, uint32(r), false); err != nil {
-		return err
-	}
-
-	if useShift {
-		if err := desktop.Keyboard(ctx, keymap.XK_Shift_L, false); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

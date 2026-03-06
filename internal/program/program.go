@@ -66,6 +66,12 @@ type TypeText struct {
 
 func (*TypeText) isStatement() {}
 
+type Prompt struct {
+	Text string
+}
+
+func (*Prompt) isStatement() {}
+
 func ParseString(s string) (*Program, error) {
 	programAny, err := Parse("", []byte(s))
 	if err != nil {
