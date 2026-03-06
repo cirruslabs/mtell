@@ -65,3 +65,9 @@ Any keyboard command can be modified with `On` or `Off` modifier, for example:
 These commands allow one to utilize a mouse, currently only through computer vision:
 
 * `<click 'Accept'>` — using computer vision, wait for the pattern (can be a regular expression) to appear on screen and click in the center of its bounding box
+
+### Computer use
+
+These commands are powered by OpenAI's [Computer use](https://developers.openai.com/api/docs/guides/tools-computer-use):
+
+* `<prompt 'Accept the dialog and close the currently active window.'>` — operate software through user interface using natural language

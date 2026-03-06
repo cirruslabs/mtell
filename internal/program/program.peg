@@ -21,7 +21,7 @@ Program = statements:(Command / TypeText)* EOF {
 }
 
 // Command can be like <wait 'Text'>, <leftAltOn>, etc.
-Command = '<' command:(WaitDuration / WaitText / ClickText / PressKey) '>' {
+Command = '<' command:(WaitDuration / WaitText / ClickText / PressKey / Prompt) '>' {
     return command, nil
 }
 
@@ -80,6 +80,13 @@ KeyMask = "On" {
     return KeyOn, nil
 } / "Off" {
     return KeyOff, nil
+}
+
+// Parse <prompt 'Accept the dialog and close the currently active window.'>
+Prompt = "prompt" WS t:QuotedText {
+	return &Prompt{
+	    Text: t.(string),
+	}, nil
 }
 
 // Parse freestanding text

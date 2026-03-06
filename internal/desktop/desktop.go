@@ -4,7 +4,10 @@ import (
 	"context"
 	"image"
 	"io"
+	"strings"
+	"unicode"
 
+	"github.com/cirruslabs/mtell/internal/keymap"
 	"github.com/mitchellh/go-vnc"
 )
 
@@ -15,4 +18,40 @@ type Desktop interface {
 	Screen(ctx context.Context) (image.Image, error)
 
 	io.Closer
+}
+
+func TypeText(ctx context.Context, desktop Desktop, text string) error {
+	for _, c := range text {
+		if err := TypeRune(ctx, desktop, c); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func TypeRune(ctx context.Context, desktop Desktop, r rune) error {
+	useShift := unicode.IsUpper(r) || strings.ContainsRune("!@#$%^&*()_+{}:\"|<>?", r)
+
+	if useShift {
+		if err := desktop.Keyboard(ctx, keymap.XK_Shift_L, true); err != nil {
+			return err
+		}
+	}
+
+	if err := desktop.Keyboard(ctx, uint32(r), true); err != nil {
+		return err
+	}
+
+	if err := desktop.Keyboard(ctx, uint32(r), false); err != nil {
+		return err
+	}
+
+	if useShift {
+		if err := desktop.Keyboard(ctx, keymap.XK_Shift_L, false); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
