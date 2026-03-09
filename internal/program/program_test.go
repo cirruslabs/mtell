@@ -96,6 +96,18 @@ func TestKeyOff(t *testing.T) {
 	require.Equal(t, programpkg.KeyOff, statementTyped.Mask)
 }
 
+func TestPrompt(t *testing.T) {
+	program, err := programpkg.ParseString("<prompt 'Open Safari'>")
+	require.NoError(t, err)
+	require.Len(t, program.Statements, 1)
+
+	statement := program.Statements[0]
+	require.IsType(t, &programpkg.Prompt{}, statement)
+
+	statementTyped := statement.(*programpkg.Prompt)
+	require.Equal(t, "Open Safari", statementTyped.Text)
+}
+
 func TestType(t *testing.T) {
 	program, err := programpkg.ParseString("Just random text.")
 	require.NoError(t, err)
