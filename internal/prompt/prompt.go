@@ -10,6 +10,7 @@ import (
 	"math"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	desktoppkg "github.com/cirruslabs/mtell/internal/desktop"
 	"github.com/mitchellh/go-vnc"
@@ -138,6 +139,10 @@ func handleAction(
 		slog.InfoContext(ctx, "dragging", "num_points", len(typedAction.Path))
 
 		return drag(ctx, desktop, typedAction.Path)
+	case responses.ComputerActionKeypress:
+		slog.InfoContext(ctx, "pressing keys", "keys", typedAction.Keys)
+
+		return keypress(ctx, desktop, typedAction.Keys)
 	case responses.ComputerActionMove:
 		slog.InfoContext(ctx, "moving mouse", "x", typedAction.X, "y", typedAction.Y)
 
@@ -246,4 +251,52 @@ func mouse(ctx context.Context, desktop desktoppkg.Desktop, mask vnc.ButtonMask,
 	}
 
 	return desktop.Mouse(ctx, mask, uint16(x), uint16(y))
+}
+
+func keypress(ctx context.Context, desktop desktoppkg.Desktop, keys []string) error {
+	var keyCodes []uint32
+
+	for _, key := range keys {
+		// Similarly to normalizePlaywrightKey()[1]
+		//
+		// [1]: https://github.com/openai/openai-cua-sample-app/blob/3751c8baa6376c0bbf6cceea2cdc0c0b42996e03/packages/runner-core/src/responses-loop.ts#L153
+		key = strings.TrimSpace(key)
+
+		// If key is a single character, it is case-sensitive
+		if utf8.ValidString(key) && utf8.RuneCountInString(key) == 1 {
+			r, _ := utf8.DecodeRuneInString(key)
+
+			keyCodes = append(keyCodes, uint32(r))
+
+			continue
+		}
+
+		// Otherwise, it's a key symbol, and it can be case-insensitive
+		keyCode, ok := keyMap[strings.ToLower(key)]
+		if !ok {
+			return fmt.Errorf("unknown key %q", key)
+		}
+
+		keyCodes = append(keyCodes, uint32(keyCode))
+	}
+
+	for i := range keyCodes {
+		slog.DebugContext(ctx, "pressing key", "key", keys[i], "code",
+			fmt.Sprintf("%#x", keyCodes[i]))
+
+		if err := desktop.Keyboard(ctx, keyCodes[i], true); err != nil {
+			return fmt.Errorf("failed to press key %q: %w", keys[i], err)
+		}
+	}
+
+	for i := len(keyCodes) - 1; i >= 0; i-- {
+		slog.DebugContext(ctx, "releasing key", "key", keys[i], "code",
+			fmt.Sprintf("%#x", keyCodes[i]))
+
+		if err := desktop.Keyboard(ctx, keyCodes[i], false); err != nil {
+			return fmt.Errorf("failed to release key %q: %w", keys[i], err)
+		}
+	}
+
+	return nil
 }
