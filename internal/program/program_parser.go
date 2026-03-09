@@ -94,11 +94,11 @@ var g = &grammar{
 									},
 									&ruleRefExpr{
 										pos:  position{line: 24, col: 62, offset: 548},
-										name: "PressKey",
+										name: "Prompt",
 									},
 									&ruleRefExpr{
-										pos:  position{line: 24, col: 73, offset: 559},
-										name: "Prompt",
+										pos:  position{line: 24, col: 71, offset: 557},
+										name: "PressKey",
 									},
 								},
 							},
