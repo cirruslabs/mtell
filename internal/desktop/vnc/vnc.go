@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"time"
 
+	desktoppkg "github.com/cirruslabs/mtell/internal/desktop"
 	"github.com/mitchellh/go-vnc"
 	"golang.org/x/sync/singleflight"
 )
@@ -159,12 +160,27 @@ func (desktop *Desktop) handleFramebufferUpdateMessage(
 	return nil
 }
 
-func (desktop *Desktop) Mouse(ctx context.Context, mask vnc.ButtonMask, x uint16, y uint16) error {
+func (desktop *Desktop) Mouse(
+	ctx context.Context,
+	mask vnc.ButtonMask,
+	x uint16,
+	y uint16,
+	opts ...desktoppkg.MouseOption,
+) error {
+	mouseInput := &desktoppkg.MouseInput{
+		Delay: desktop.inputDelay,
+	}
+
+	// Apply options
+	for _, opt := range opts {
+		opt(mouseInput)
+	}
+
 	if err := desktop.client.PointerEvent(mask, x, y); err != nil {
 		return err
 	}
 
-	return desktop.introduceInputDelay(ctx)
+	return desktop.introduceInputDelay(ctx, mouseInput.Delay)
 }
 
 func (desktop *Desktop) Keyboard(ctx context.Context, keysum uint32, down bool) error {
@@ -172,7 +188,7 @@ func (desktop *Desktop) Keyboard(ctx context.Context, keysum uint32, down bool) 
 		return err
 	}
 
-	return desktop.introduceInputDelay(ctx)
+	return desktop.introduceInputDelay(ctx, desktop.inputDelay)
 }
 
 func (desktop *Desktop) Screen(ctx context.Context) (image.Image, error) {
@@ -214,9 +230,9 @@ func (desktop *Desktop) imageDimensionsChanged() {
 	desktop.image = image.NewRGBA(image.Rect(0, 0, w, h))
 }
 
-func (desktop *Desktop) introduceInputDelay(ctx context.Context) error {
+func (desktop *Desktop) introduceInputDelay(ctx context.Context, delay time.Duration) error {
 	select {
-	case <-time.After(desktop.inputDelay):
+	case <-time.After(delay):
 		return nil
 	case <-ctx.Done():
 		return ctx.Err()

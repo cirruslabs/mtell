@@ -248,7 +248,14 @@ func drag(ctx context.Context, desktop desktoppkg.Desktop, path []responses.Comp
 	return mouse(ctx, desktop, 0, end.X, end.Y)
 }
 
-func mouse(ctx context.Context, desktop desktoppkg.Desktop, mask govnc.ButtonMask, x int64, y int64) error {
+func mouse(
+	ctx context.Context,
+	desktop desktoppkg.Desktop,
+	mask govnc.ButtonMask,
+	x int64,
+	y int64,
+	opts ...desktoppkg.MouseOption,
+) error {
 	if x < 0 || x > math.MaxUint16 {
 		return fmt.Errorf("x coordinate for mouse is out of bounds: %d", x)
 	}
@@ -257,7 +264,7 @@ func mouse(ctx context.Context, desktop desktoppkg.Desktop, mask govnc.ButtonMas
 		return fmt.Errorf("y coordinate for mouse is out of bounds: %d", y)
 	}
 
-	return desktop.Mouse(ctx, mask, uint16(x), uint16(y))
+	return desktop.Mouse(ctx, mask, uint16(x), uint16(y), opts...)
 }
 
 func keypress(ctx context.Context, desktop desktoppkg.Desktop, keys []string) error {
@@ -371,12 +378,15 @@ func scrollAxis(
 		steps++
 	}
 
+	// Use a shorter delay because we scroll only by a single pixel each mouse click
+	delay := 5 * time.Millisecond
+
 	for range steps {
-		if err := mouse(ctx, desktop, scrollButton, x, y); err != nil {
+		if err := mouse(ctx, desktop, scrollButton, x, y, desktoppkg.WithMouseDelay(delay)); err != nil {
 			return err
 		}
 
-		if err := mouse(ctx, desktop, 0, x, y); err != nil {
+		if err := mouse(ctx, desktop, 0, x, y, desktoppkg.WithMouseDelay(delay)); err != nil {
 			return err
 		}
 	}
