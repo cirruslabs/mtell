@@ -14,6 +14,22 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
+// Map github.com/mitchellh/go-vnc button constants
+// to more user-friendly names as per unofficial RFB
+// protocol documentation[1]
+//
+// [1]: https://github.com/rfbproto/rfbproto/blob/master/rfbproto.rst#pointerevent
+const (
+	ButtonLeft        = vnc.ButtonLeft
+	ButtonMiddle      = vnc.ButtonMiddle
+	ButtonRight       = vnc.ButtonRight
+	ButtonScrollUp    = vnc.Button4
+	ButtonScrollDown  = vnc.Button5
+	ButtonScrollLeft  = vnc.Button6
+	ButtonScrollRight = vnc.Button7
+	ButtonBack        = vnc.Button8
+)
+
 type Desktop struct {
 	client          *vnc.ClientConn
 	serverMessageCh chan vnc.ServerMessage
