@@ -2,7 +2,8 @@
 
 `mtell` CLI allows you to tell a machine to do something over VNC. It's indispensable when the actions to be performed cannot be done over a traditional SSH connection, which is a frequent necessity when automating macOS machines.
 
-Besides allowing you to deterministicaly script basic keyboard and mouse interactions, along computer vision to wait for and click certain elements on the screen. `mtell` also support OpenAI's [Computer use](https://developers.openai.com/api/docs/guides/tools-computer-use):
+Besides allowing you to deterministicaly script basic keyboard and mouse interactions, along computer vision to wait for and click certain elements on the screen. 
+`mtell` also support OpenAI's [Computer use](https://developers.openai.com/api/docs/guides/tools-computer-use). Here is a quick demo utilizing a local [Tart](https://github.com/cirruslabs/tart) VM:
 
 https://github.com/user-attachments/assets/e91c6501-5347-4cf8-9b56-75b6be4a88a7
 
