@@ -24,7 +24,11 @@ import (
 const (
 	model = openai.ChatModelGPT5_4
 
-	waitDuration = 1 * time.Second
+	computerInstructions = "You are controlling a desktop over VNC. " +
+		"Use the screenshot as the source of truth. Before typing, pressing Enter, " +
+		"or using keyboard shortcuts, make sure the intended element or window is focused."
+
+	waitDuration = 5 * time.Second
 )
 
 func Prompt(ctx context.Context, desktop desktoppkg.Desktop, text string) error {
@@ -47,7 +51,8 @@ func Prompt(ctx context.Context, desktop desktoppkg.Desktop, text string) error 
 		slog.DebugContext(ctx, "calling LLM", "model", model)
 
 		params := responses.ResponseNewParams{
-			Model: model,
+			Instructions: openai.String(computerInstructions),
+			Model:        model,
 			Input: responses.ResponseNewParamsInputUnion{
 				OfInputItemList: input,
 			},
@@ -124,7 +129,7 @@ func handleAction(
 ) error {
 	switch typedAction := action.AsAny().(type) {
 	case responses.ComputerActionClick:
-		slog.DebugContext(ctx, "clicking", "button", typedAction.Button,
+		slog.InfoContext(ctx, "clicking", "button", typedAction.Button,
 			"x", typedAction.X, "y", typedAction.Y)
 
 		return click(ctx, desktop, typedAction.Button, typedAction.X, typedAction.Y)
@@ -151,7 +156,8 @@ func handleAction(
 		return mouse(ctx, desktop, 0, typedAction.X, typedAction.Y)
 	case responses.ComputerActionScreenshot:
 		// We unconditionally attach the screenshot after processing each computer call
-		slog.InfoContext(ctx, "delaying screenshot action")
+		// so let's just acknowledge the screenshot request
+		slog.InfoContext(ctx, "taking screenshot")
 
 		return nil
 	case responses.ComputerActionScroll:
@@ -164,7 +170,7 @@ func handleAction(
 
 		return desktoppkg.TypeText(ctx, desktop, typedAction.Text)
 	case responses.ComputerActionWait:
-		slog.InfoContext(ctx, "waiting", "duration", waitDuration)
+		slog.DebugContext(ctx, "waiting", "duration", waitDuration)
 
 		select {
 		case <-time.After(waitDuration):
