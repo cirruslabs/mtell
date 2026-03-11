@@ -18,6 +18,7 @@ import (
 	"github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/packages/param"
 	"github.com/openai/openai-go/v3/responses"
+	"github.com/openai/openai-go/v3/shared"
 	"golang.org/x/exp/constraints"
 )
 
@@ -53,6 +54,9 @@ func Prompt(ctx context.Context, desktop desktoppkg.Desktop, text string) error 
 		params := responses.ResponseNewParams{
 			Instructions: openai.String(computerInstructions),
 			Model:        model,
+			Reasoning: responses.ReasoningParam{
+				Effort: shared.ReasoningEffortXhigh,
+			},
 			Input: responses.ResponseNewParamsInputUnion{
 				OfInputItemList: input,
 			},
