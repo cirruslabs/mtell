@@ -2,7 +2,9 @@
 
 `mtell` CLI allows you to tell a machine to do something over VNC. It's indispensable when the actions to be performed cannot be done over a traditional SSH connection, which is a frequent necessity when automating macOS machines.
 
-Besides allowing you to script basic keyboard and mouse interactions, `mtell` can also utilize computer vision to wait for and click certain elements on the screen.
+Besides allowing you to deterministicaly script basic keyboard and mouse interactions, along computer vision to wait for and click certain elements on the screen. `mtell` also support OpenAI's [Computer use](https://developers.openai.com/api/docs/guides/tools-computer-use):
+
+https://github.com/user-attachments/assets/e91c6501-5347-4cf8-9b56-75b6be4a88a7
 
 This project is heavily inspired by [Packer's `boot_command`](https://developer.hashicorp.com/packer/integrations/cirruslabs/tart/latest/components/builder/tart#boot-configuration), but extends its command set and allows you to run these commands in any environment where you can start a binary.
 
@@ -29,6 +31,18 @@ mtell --vnc "vnc://:password@localhost:5900" "<wait10s><click 'Select Your Count
 ```
 
 ## Reference
+
+### Computer use
+
+These commands are powered by OpenAI's [Computer use](https://developers.openai.com/api/docs/guides/tools-computer-use):
+
+* `<prompt 'Accept the dialog and close the currently active window.'>` — operate software through user interface using natural language
+
+### Mouse
+
+These commands allow one to utilize a mouse, currently only through computer vision:
+
+* `<click 'Accept'>` — using computer vision, wait for the pattern (can be a regular expression) to appear on screen and click in the center of its bounding box
 
 ### Waiting
 
@@ -59,15 +73,3 @@ Any keyboard command can be modified with `On` or `Off` modifier, for example:
 * `<leftShift>` —  presses <kbd>Shift</kbd> key and releases it
 * `<leftShiftOn>` — presses <kbd>Shift</kbd> key without releasing it
 * `<leftShiftOff>` — releases <kbd>Shift</kbd> key
-
-### Mouse
-
-These commands allow one to utilize a mouse, currently only through computer vision:
-
-* `<click 'Accept'>` — using computer vision, wait for the pattern (can be a regular expression) to appear on screen and click in the center of its bounding box
-
-### Computer use
-
-These commands are powered by OpenAI's [Computer use](https://developers.openai.com/api/docs/guides/tools-computer-use):
-
-* `<prompt 'Accept the dialog and close the currently active window.'>` — operate software through user interface using natural language
