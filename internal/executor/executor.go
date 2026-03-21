@@ -10,12 +10,12 @@ import (
 
 	desktoppkg "github.com/cirruslabs/mtell/internal/desktop"
 	programpkg "github.com/cirruslabs/mtell/internal/program"
-	"github.com/cirruslabs/mtell/internal/prompt"
+	promptpkg "github.com/cirruslabs/mtell/internal/prompt"
 	"github.com/cirruslabs/mtell/internal/vision"
 	govnc "github.com/mitchellh/go-vnc"
 )
 
-func Execute(ctx context.Context, desktop desktoppkg.Desktop, program *programpkg.Program) error {
+func Execute(ctx context.Context, desktop desktoppkg.Desktop, program *programpkg.Program, provider promptpkg.Provider) error {
 	for _, statement := range program.Statements {
 		switch stmt := statement.(type) {
 		case *programpkg.WaitDuration:
@@ -79,7 +79,7 @@ func Execute(ctx context.Context, desktop desktoppkg.Desktop, program *programpk
 		case *programpkg.Prompt:
 			slog.InfoContext(ctx, "prompting text", "text", stmt.Text)
 
-			if err := prompt.Prompt(ctx, desktop, stmt.Text); err != nil {
+			if err := provider.Prompt(ctx, desktop, stmt.Text); err != nil {
 				return fmt.Errorf("failed to prompt text: %w", err)
 			}
 		}

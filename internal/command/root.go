@@ -12,6 +12,7 @@ import (
 	"github.com/cirruslabs/mtell/internal/executor"
 	"github.com/cirruslabs/mtell/internal/logginglevel"
 	programpkg "github.com/cirruslabs/mtell/internal/program"
+	"github.com/cirruslabs/mtell/internal/prompt"
 	"github.com/cirruslabs/mtell/internal/version"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
@@ -21,6 +22,7 @@ type Options struct {
 	VNC        string
 	InputDelay time.Duration
 	Debug      bool
+	Provider   string
 }
 
 func NewRootCommand() *cobra.Command {
@@ -46,6 +48,8 @@ func NewRootCommand() *cobra.Command {
 	cmd.Flags().DurationVar(&opts.InputDelay, "input-delay", 100*time.Millisecond,
 		"delay between input actions (mouse clicks, keyboard key presses, etc.)")
 	cmd.Flags().BoolVar(&opts.Debug, "debug", false, "enable verbose output")
+	cmd.Flags().StringVar(&opts.Provider, "provider", "openai",
+		"LLM provider for computer use (\"openai\" or \"gemini\")")
 
 	return cmd
 }
@@ -73,6 +77,18 @@ func run(cmd *cobra.Command, args []string, opts *Options) error {
 
 	slog.Info("connected to a desktop using VNC", "vnc", opts.VNC)
 
+	// Select the LLM provider
+	var provider prompt.Provider
+
+	switch opts.Provider {
+	case "openai":
+		provider = &prompt.OpenAIProvider{}
+	case "gemini":
+		provider = &prompt.GeminiProvider{}
+	default:
+		return fmt.Errorf("unsupported provider %q, use \"openai\" or \"gemini\"", opts.Provider)
+	}
+
 	// Run the desktop session
 	subCtx, subCtxCancel := context.WithCancel(cmd.Context())
 	group, groupCtx := errgroup.WithContext(subCtx)
@@ -89,7 +105,7 @@ func run(cmd *cobra.Command, args []string, opts *Options) error {
 	group.Go(func() error {
 		defer subCtxCancel()
 
-		return executor.Execute(groupCtx, desktop, program)
+		return executor.Execute(groupCtx, desktop, program, provider)
 	})
 
 	return group.Wait()

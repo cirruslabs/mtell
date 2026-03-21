@@ -49,7 +49,7 @@ func TestSimpleVNC(t *testing.T) {
 		"<wait 'A very special button'><click 'A very special button'>")
 	require.NoError(t, err)
 
-	err = executor.Execute(t.Context(), desktop, program)
+	err = executor.Execute(t.Context(), desktop, program, nil)
 	require.NoError(t, err)
 
 	require.Eventually(t, func() bool {
